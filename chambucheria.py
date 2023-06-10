@@ -15,6 +15,18 @@ POSICION_UBICACION = 6
 COMANDO_AGREGAR = "agregar"
 COMANDO_MODIFICAR = "modificar"
 COMANDO_ELIMINAR = "eliminar"
+COMANDO_LISTAR = "listar"
+
+def asignar_nuevo_formato(campo):
+    if campo == "id":
+        nuevo_formato = campo.upper()
+    elif campo == "cant_personas":
+        nuevo_formato = "Cantidad de personas"
+    elif campo == "HH:MM":
+        nuevo_formato = "Hora"
+    else:
+        nuevo_formato = campo.capitalize()
+    return nuevo_formato
 
 def asignar_posicion(campo):
     if campo == "nombre":
@@ -116,7 +128,25 @@ def modificar_reserva(argv, nuevos_datos, nombre_archivo):
     archivo_auxiliar.close()
     
     os.rename("datos_auxiliares.csv", nombre_archivo)
-            
+
+def listar_reserva(argv, nombre_archivo):      
+    try:
+        archivo = open(nombre_archivo)
+    except:
+        print("Error al abrir el archivo")
+        return
+    
+    lector = csv.reader(archivo, delimiter=";")
+    reservas = list(lector)
+
+    
+    if len(sys.argv) == 2:
+        for i in range(1, len(reservas)):
+            for j in range(len(reservas[i])):
+                print(f"{asignar_nuevo_formato(reservas[0][j])}: {reservas[i][j]}")
+            print("\n")
+
+    archivo.close()
 
 def main(): 
     if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR:
@@ -130,6 +160,9 @@ def main():
 
     if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and sys.argv[POSICION_ID].isnumeric():
         eliminar_reserva(sys.argv, RESERVA)
+    
+    if sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
+        listar_reserva(sys.orig_argv, RESERVA)
 
 if __name__ == "__main__":
     main()
