@@ -23,10 +23,32 @@ CAMPO_CANTIDAD_PERSONAS = "cant_personas"
 CAMPO_HORARIO = "horario"
 CAMPO_UBICACION = "ubicacion"
 
-"""
-def validar_argumentos(argv):
-    if argv[1] == COMANDO_ELIMINAR:
-"""
+def existe_id(id, nombre_archivo):
+    existe = False
+    archivo = open(nombre_archivo)
+    lector = csv.reader(archivo, delimiter=";")
+    reservas = list(lector)
+    for i in range(len(reservas)):
+        if reservas[i][0] == id:
+            existe = True
+    archivo.close()
+    return existe
+
+def imprimir_error_modificar(nombre_archivo):
+    if len(sys.argv) != 3:
+        print("El nro de argumentos ingresados es incorrecto. ingrese: <archivo> modificar id.")
+    elif not(sys.argv[POSICION_ID].isnumeric()):
+        print("El id debe ser un número.")
+    elif not existe_id(sys.argv[POSICION_ID], nombre_archivo):
+        print("No se puede modificar esta reserva porque no existe.")
+
+def imprimir_error_eliminar(nombre_archivo):
+    if len(sys.argv) != 3:
+        print("El nro de argumentos ingresados es incorrecto. ingrese: <archivo> eliminar id.")
+    elif not(sys.argv[POSICION_ID].isnumeric()):
+        print("El id debe ser un número.")
+    elif not existe_id(sys.argv[POSICION_ID], nombre_archivo):
+        print("No se puede eliminar esta reserva porque no existe.")
 
 def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
@@ -56,6 +78,7 @@ def nuevo_id(nombre_archivo):
     else:
         id = "0"
     return str(int(id) + 1)
+    archivo.close()
     
 def agregar_reserva(argv, nombre_archivo):
     id = nuevo_id(nombre_archivo)
@@ -179,19 +202,19 @@ def main():
         agregar_reserva(sys.argv, RESERVA)
 
 
-    if sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric():
+    if sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric() and existe_id(sys.argv[POSICION_ID], RESERVA):
         datos = input("¿Qué desea cambiar?:")
         modificar_reserva(sys.argv, datos, RESERVA)
         print("Modificación exitosa.")
-    """
-    elif len(sys.argv) != 3:
-        print("El nro de argumentos ingresados es incorrecto. ingrese: <archivo> modificar id")
-    elif not(sys.argv[POSICION_ID].isnumeric()):
-        print("El id debe ser un número")
-    """
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR:
+        imprimir_error_modificar(RESERVA)
+        return
 
-    if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric():
+    if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric() and existe_id(sys.argv[POSICION_ID], RESERVA):
         eliminar_reserva(sys.argv, RESERVA)
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR:
+        imprimir_error_eliminar(RESERVA)
+        return
     
     if sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
         listar_reserva(sys.orig_argv, RESERVA)
