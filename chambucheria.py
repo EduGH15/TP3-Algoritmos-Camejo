@@ -50,6 +50,14 @@ def imprimir_error_eliminar(nombre_archivo):
     elif not existe_id(sys.argv[POSICION_ID], nombre_archivo):
         print("No se puede eliminar esta reserva porque no existe.")
 
+def imprimir_error_listar(nombre_archivo):
+    if len(sys.argv) == 3:
+        print("El número de argumentos no es válido. Ingrese: <archivo> listar id_inicial id_final o <archivo> listar")
+    elif not existe_id(sys.argv[2], RESERVA) or not existe_id(sys.argv[3], RESERVA):
+        print("No se puede listar el archivo porque uno de los dos id no existe")
+    elif sys.argv[2] < sys.argv[3]:
+        print("El primer id debe ser mayor al segundo")
+
 def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
         nuevo_formato = campo.upper()
@@ -216,8 +224,10 @@ def main():
         imprimir_error_eliminar(RESERVA)
         return
     
-    if sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
+    if (sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == 2) or (sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == 4 and (existe_id(sys.argv[2], RESERVA) and existe_id(sys.argv[3], RESERVA)) and (sys.argv[2] > sys.argv[3])):
         listar_reserva(sys.orig_argv, RESERVA)
-
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
+        imprimir_error_listar(RESERVA)
+        return
 if __name__ == "__main__":
     main()
