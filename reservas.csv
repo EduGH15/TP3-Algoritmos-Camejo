@@ -1,7 +1,3 @@
-id;nombre;cant_personas;HH:MM;ubicacion
-4;ASDAS;2;21:00;F
-6;Edu;6;21:00;F
-7;Sol;6;21:00;F
-9;Pepe;6;21:00;F
-10;Maria;5;23:50;D
-11;edu;34;23:50;D
+id;nombre;cant_personas;horario;ubicacion
+4;Axel;3;10:00;F
+15;Facu;3;10:00;F

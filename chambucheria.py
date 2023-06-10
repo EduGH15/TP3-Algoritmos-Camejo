@@ -17,32 +17,44 @@ COMANDO_MODIFICAR = "modificar"
 COMANDO_ELIMINAR = "eliminar"
 COMANDO_LISTAR = "listar"
 
+CAMPO_ID = "id"
+CAMPO_NOMBRE = "nombre"
+CAMPO_CANTIDAD_PERSONAS = "cant_personas"
+CAMPO_HORARIO = "horario"
+CAMPO_UBICACION = "ubicacion"
+
+"""
+def validar_argumentos(argv):
+    if argv[1] == COMANDO_ELIMINAR:
+"""
+
 def asignar_nuevo_formato(campo):
-    if campo == "id":
+    if campo == CAMPO_ID:
         nuevo_formato = campo.upper()
-    elif campo == "cant_personas":
+    elif campo == CAMPO_CANTIDAD_PERSONAS:
         nuevo_formato = "Cantidad de personas"
-    elif campo == "HH:MM":
-        nuevo_formato = "Hora"
     else:
         nuevo_formato = campo.capitalize()
     return nuevo_formato
 
 def asignar_posicion(campo):
-    if campo == "nombre":
+    if campo == CAMPO_NOMBRE:
         return 1
-    elif campo == "cant_personas":
+    elif campo == CAMPO_CANTIDAD_PERSONAS:
         return 2
-    elif campo == "tiempo":
+    elif campo == CAMPO_HORARIO:
         return 3
-    elif campo == "ubicacion":
+    elif campo == CAMPO_UBICACION:
         return 4
 
 def nuevo_id(nombre_archivo):
     archivo = open(nombre_archivo)
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
-    id = reservas[len(reservas) - 1][0]
+    if len(reservas) > 1:
+        id = reservas[len(reservas) - 1][0]
+    else:
+        id = "0"
     return str(int(id) + 1)
     
 def agregar_reserva(argv, nombre_archivo):
@@ -96,7 +108,6 @@ def modificar_reserva(argv, nuevos_datos, nombre_archivo):
     lista_nuevos_datos = nuevos_datos.split()
     campo = lista_nuevos_datos[0]
     valor_campo = lista_nuevos_datos[1]
-    #posicion_campo_fila = 0
     posicion_campo_columna = asignar_posicion(campo)
     nueva_linea = []
     try:
@@ -145,6 +156,21 @@ def listar_reserva(argv, nombre_archivo):
             for j in range(len(reservas[i])):
                 print(f"{asignar_nuevo_formato(reservas[0][j])}: {reservas[i][j]}")
             print("\n")
+    elif len(sys.argv) == 4:
+        id_inicial = sys.argv[2]
+        id_final = sys.argv[3]
+        fila_inicial = -1
+        fila_final = -1
+        for i in range(1, len(reservas)):
+            if id_inicial in reservas[i][0]:
+                fila_inicial = i
+            if id_final in reservas[i][0]:
+                fila_final = i
+        for i in range(fila_inicial, fila_final + 1):
+            for j in range(len(reservas[i])):
+                print(f"{asignar_nuevo_formato(reservas[0][j])}: {reservas[i][j]}")
+            print("\n")
+
 
     archivo.close()
 
@@ -153,12 +179,18 @@ def main():
         agregar_reserva(sys.argv, RESERVA)
 
 
-    if sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and sys.argv[POSICION_ID].isnumeric():
+    if sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric():
         datos = input("¿Qué desea cambiar?:")
         modificar_reserva(sys.argv, datos, RESERVA)
+        print("Modificación exitosa.")
+    """
+    elif len(sys.argv) != 3:
+        print("El nro de argumentos ingresados es incorrecto. ingrese: <archivo> modificar id")
+    elif not(sys.argv[POSICION_ID].isnumeric()):
+        print("El id debe ser un número")
+    """
 
-
-    if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and sys.argv[POSICION_ID].isnumeric():
+    if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric():
         eliminar_reserva(sys.argv, RESERVA)
     
     if sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
