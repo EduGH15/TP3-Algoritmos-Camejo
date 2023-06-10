@@ -1,3 +1,6 @@
 id;nombre;cant_personas;horario;ubicacion
 4;Axel;3;10:00;F
-15;Edu;3;10:00;F
+5;sol;4;10:00;D
+6;Pepe;5;10:00;D
+7;Pepe;5;11:11;D
+8;Pepe;5;11:11;D

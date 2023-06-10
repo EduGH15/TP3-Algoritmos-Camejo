@@ -34,6 +34,22 @@ def existe_id(id, nombre_archivo):
     archivo.close()
     return existe
 
+def es_horario_valido(horario):
+    es_valido = True
+    lista_horario = list(horario)
+    i = 0
+    while(i < len(lista_horario) and es_valido):
+        if len(lista_horario) != 5:
+            es_valido = False
+        elif i == 2 and lista_horario[i] != ":":
+            es_valido = False
+        elif i != 2 and not lista_horario[i].isnumeric():
+            es_valido = False
+        i+= 1
+
+    return es_valido   
+
+
 def imprimir_error_modificar(nombre_archivo):
     if len(sys.argv) != 3:
         print("El nro de argumentos ingresados es incorrecto. ingrese: <archivo> modificar id.")
@@ -53,10 +69,14 @@ def imprimir_error_eliminar(nombre_archivo):
 def imprimir_error_listar(nombre_archivo):
     if len(sys.argv) == 3:
         print("El número de argumentos no es válido. Ingrese: <archivo> listar id_inicial id_final o <archivo> listar")
-    elif not existe_id(sys.argv[2], RESERVA) or not existe_id(sys.argv[3], RESERVA):
+    elif not existe_id(sys.argv[2], nombre_archivo) or not existe_id(sys.argv[3], nombre_archivo):
         print("No se puede listar el archivo porque uno de los dos id no existe")
     elif sys.argv[2] < sys.argv[3]:
         print("El primer id debe ser mayor al segundo")
+
+def imprimir_error_agregar(nombre_archivo):
+    if len(sys.argv) != 6:
+        print("La cantidad de argumentos ingresado es invalida. Ingrese: <archivo> agrega nombre cant_personas HH:MM ubicacion")
 
 def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
@@ -206,9 +226,11 @@ def listar_reserva(argv, nombre_archivo):
     archivo.close()
 
 def main(): 
-    if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR:
+    if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR and len(sys.argv) == 6 and es_horario_valido(sys.argv[4]):
         agregar_reserva(sys.argv, RESERVA)
-
+        print("Se agregó con exito")
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR:
+        imprimir_error_agregar(RESERVA)
 
     if sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric() and existe_id(sys.argv[POSICION_ID], RESERVA):
         datos = input("¿Qué desea cambiar?:")
@@ -220,12 +242,14 @@ def main():
 
     if sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == 3 and sys.argv[POSICION_ID].isnumeric() and existe_id(sys.argv[POSICION_ID], RESERVA):
         eliminar_reserva(sys.argv, RESERVA)
+        print("Se eliminó con éxito")
     elif sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR:
         imprimir_error_eliminar(RESERVA)
         return
     
     if (sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == 2) or (sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == 4 and (existe_id(sys.argv[2], RESERVA) and existe_id(sys.argv[3], RESERVA)) and (sys.argv[2] > sys.argv[3])):
         listar_reserva(sys.orig_argv, RESERVA)
+        print("Se enlistó con éxito")
     elif sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR:
         imprimir_error_listar(RESERVA)
         return
