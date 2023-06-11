@@ -1,5 +1,2 @@
-id;nombre;cant_personas;horario;ubicacion
-11;Alejandro;3;18:30;D
-12;Carlos;2;12:00;D
-13;Agus;2;12:00;F
-14;Pepe;2;12:00;F
+id;nombre;cant;horario;ubicacion
+2;Agus;1;19:40;F
