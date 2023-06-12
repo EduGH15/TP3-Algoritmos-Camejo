@@ -99,28 +99,24 @@ def es_cantidad_valida(cantidad):
 def es_comando_valido(comando):
     return comando == COMANDO_AGREGAR or comando == COMANDO_MODIFICAR or comando == COMANDO_ELIMINAR or comando == COMANDO_LISTAR
 
-def imprimir_error_agregar(argumentos):
-    if len(argumentos) != CANTIDAD_ARGUMENTOS_AGREGAR:
-        print("La cantidad de argumentos ingresado es invalida. Ingrese: <archivo> agrega nombre cant_personas HH:MM ubicacion")
-    elif not es_nombre_valido(argumentos[POSICION_NOMBRE]):
+def imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion):
+    if not es_nombre_valido(nombre):
         print("el nombre ingresado no es válido. Ingrese un nombre sin números.")
-    elif not es_cantidad_valida(argumentos[POSICION_CANTIDAD_PERSONAS]):
+    elif not es_cantidad_valida(cantidad_personas):
         print("La cantidad de personas ingresadas es inválida. Ingrese un número mayor a cero.")
-    elif not es_horario_valido(argumentos[POSICION_HORARIO]):
+    elif not es_horario_valido(hora):
         print("El horario es inválido. Ingrese un horario entre las 00:00 y las 23:59.")
-    elif not es_ubicacion_valida(argumentos[POSICION_UBICACION]):
+    elif not es_ubicacion_valida(ubicacion):
         print("La ubicación es inválida. Ingrese D o F.")
 
-def imprimir_error_modificar(argumentos, nombre_archivo):
-    if len(argumentos) != CANTIDAD_ARGUMENTOS_MODIFICAR:
-        print("El nro de argumentos ingresados es incorrecto.")
-    elif not(argumentos[POSICION_ID].isnumeric()):
+def imprimir_error_modificar(id, nombre_archivo):
+    if not id.isnumeric():
         print("El id debe ser un número.")
-    elif not existe_id(argumentos[POSICION_ID], nombre_archivo):
+    elif not existe_id(id, nombre_archivo):
         print("No se puede acceder a esta reserva porque no existe.")
 
-def imprimir_error_eliminar(argumentos, nombre_archivo):
-    imprimir_error_modificar(argumentos, nombre_archivo)
+def imprimir_error_eliminar(id, nombre_archivo):
+    imprimir_error_modificar(id, nombre_archivo)
 
 def imprimir_error_listar(argumentos, nombre_archivo):
     if len(argumentos) != CANTIDAD_ARGUMENTOS_MINIMA_LISTAR and len(argumentos) != CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR:
@@ -133,8 +129,10 @@ def imprimir_error_listar(argumentos, nombre_archivo):
         print("No se pueden mostrar las reservas porque los id están fuera de rango.")
 
 def imprimir_error_modificar_campo(lista_datos):
-    if lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and not es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
-        print("El nombre no debe contener números")
+    if len(lista_datos) != 2:
+        print("La cantidad de argumentos es incorrecta. Ingrese: campo nuevo_valor")
+    elif lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and not es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
+        print("El nombre no debe contener números.")
     elif lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and not es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
         print("La cantidad de personas debe ser mayor a cero.")
     elif lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and not es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
@@ -142,7 +140,7 @@ def imprimir_error_modificar_campo(lista_datos):
     elif lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and not es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
         print("La ubicación debe ser válida (D o F).")
     else:
-        print("Los campo que desea cambiar es inválido")
+        print("El campo que desea cambiar es inválido, ingrese otro campo:")
 
 def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
@@ -174,9 +172,9 @@ def nuevo_id(nombre_archivo):
     archivo.close()
     return str(int(id) + 1)
         
-def agregar_reserva_archivo(argumentos, nombre_archivo):
+def agregar_reserva_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     id = nuevo_id(nombre_archivo)
-    nueva_linea = [id, argumentos[POSICION_NOMBRE], argumentos[POSICION_CANTIDAD_PERSONAS], argumentos[POSICION_HORARIO], argumentos[POSICION_UBICACION]]
+    nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
     
     try:
         archivo = open(nombre_archivo, "a")
@@ -188,9 +186,7 @@ def agregar_reserva_archivo(argumentos, nombre_archivo):
     escritor.writerow(nueva_linea)
     archivo.close()
 
-def eliminar_reserva_archivo(argumentos, nombre_archivo):
-    id = argumentos[POSICION_ID]
-
+def eliminar_reserva_archivo(id, nombre_archivo):
     try:
         archivo = open(nombre_archivo)
     except:
@@ -216,8 +212,7 @@ def eliminar_reserva_archivo(argumentos, nombre_archivo):
     
     os.rename("datos_auxiliares.csv", nombre_archivo)
 
-def modificar_reserva_archivo(argumentos, lista_datos, nombre_archivo):
-    id = argumentos[POSICION_ID]
+def modificar_reserva_archivo(id, lista_datos, nombre_archivo):
     campo = lista_datos[0]
     valor_campo = lista_datos[1]
     posicion_campo_columna = asignar_posicion(campo)
@@ -278,35 +273,34 @@ def listar_reserva_archivo(argumentos, nombre_archivo):
 
     archivo.close()
 
-def realizar_reserva(argumentos):
-    if argumentos[POSICiON_COMANDO] == COMANDO_AGREGAR and len(argumentos) == CANTIDAD_ARGUMENTOS_AGREGAR and es_nombre_valido(argumentos[POSICION_NOMBRE]) and es_cantidad_valida(argumentos[POSICION_CANTIDAD_PERSONAS]) and es_horario_valido(argumentos[POSICION_HORARIO]) and es_ubicacion_valida(argumentos[POSICION_UBICACION]):
-        agregar_reserva_archivo(argumentos, RESERVA)
+def realizar_reserva(nombre, cantidad_personas, hora, ubicacion):
+    if es_nombre_valido(nombre) and es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
+        agregar_reserva_archivo(nombre, cantidad_personas, hora, ubicacion, RESERVA)
         print("Se agregó con exito")
-    elif argumentos[POSICiON_COMANDO] == COMANDO_AGREGAR:
-        imprimir_error_agregar(argumentos)
-        return
+    else:
+        imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion)
 
-def cambiar_reserva(argumentos):
-    if argumentos[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(argumentos) == CANTIDAD_ARGUMENTOS_MODIFICAR and argumentos[POSICION_ID].isnumeric() and existe_id(argumentos[POSICION_ID], RESERVA):
-        datos = input("¿Qué desea cambiar?:")
-        lista_datos = datos.split()
-        if len(lista_datos) == CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO and ((lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]))):
-            modificar_reserva_archivo(sys.argv, lista_datos, RESERVA)
-            print("Modificación exitosa.")
-        else:
-            imprimir_error_modificar_campo(lista_datos)
-            return
-    elif argumentos[POSICiON_COMANDO] == COMANDO_MODIFICAR:
-        imprimir_error_modificar(argumentos, RESERVA)
-        return
+def cambiar_reserva(id):
+    es_valido = False
+    if id.isnumeric() and existe_id(id, RESERVA):
+        while(not es_valido):
+            datos = input("¿Qué desea cambiar?:")
+            lista_datos = datos.split()
+            if len(lista_datos) == CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO and ((lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]))):
+                modificar_reserva_archivo(id, lista_datos, RESERVA)
+                print("Modificación exitosa.")
+                es_valido = True
+            else:
+                imprimir_error_modificar_campo(lista_datos)
+    else:
+        imprimir_error_modificar(id, RESERVA)
 
-def cancelar_reserva(argumentos):
-    if argumentos[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(argumentos) == CANTIDAD_ARGUMENTOS_ELIMINAR and argumentos[POSICION_ID].isnumeric() and existe_id(argumentos[POSICION_ID], RESERVA):
-        eliminar_reserva_archivo(argumentos, RESERVA)
-        print("Se eliminó con éxito")
-    elif argumentos[POSICiON_COMANDO] == COMANDO_ELIMINAR:
-        imprimir_error_eliminar(argumentos, RESERVA)
-        return 
+def cancelar_reserva(id):
+    if id.isnumeric() and existe_id(id, RESERVA):
+        eliminar_reserva_archivo(id, RESERVA)
+        print("Se eliminó con éxito.")
+    else:
+        imprimir_error_eliminar(id, RESERVA)
 
 def mostrar_reservas(argumentos):
     if (argumentos[POSICiON_COMANDO] == COMANDO_LISTAR and len(argumentos) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR or (len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR and (argumentos[POSICION_ID_INICIAL].isnumeric() and argumentos[POSICION_ID_FINAL].isnumeric()) and (argumentos[POSICION_ID_INICIAL] < argumentos[POSICION_ID_FINAL]) and not id_fuera_rango(argumentos[POSICION_ID_INICIAL], RESERVA))):
@@ -316,19 +310,37 @@ def mostrar_reservas(argumentos):
         return
 
 def main():
-    argumentos = sys.argv.copy()
-    if len(argumentos) == 1:
+    if len(sys.argv) == 1:
         print("Cantidad de argumentos insuficientes.")
         return
 
-    if not es_comando_valido(argumentos[POSICiON_COMANDO]):
-        print(f"{argumentos[POSICiON_COMANDO]} no es un comando válido.")
+    if not es_comando_valido(sys.argv[POSICiON_COMANDO]):
+        print(f"{sys.argv[POSICiON_COMANDO]} no es un comando válido.")
         return
-     
-    realizar_reserva(argumentos)
-    cambiar_reserva(argumentos)
-    cancelar_reserva(argumentos)
+
+    if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_AGREGAR:
+        nombre = sys.argv[POSICION_NOMBRE]
+        cant_personas = sys.argv[POSICION_CANTIDAD_PERSONAS]  
+        horario = sys.argv[POSICION_HORARIO]
+        ubicacion = sys.argv[POSICION_UBICACION]
+        realizar_reserva(nombre, cant_personas, horario, ubicacion)
+        return
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MODIFICAR:
+        id = sys.argv[POSICION_ID]
+        cambiar_reserva(id)
+        return
+    elif sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_ELIMINAR:
+        id = sys.argv[POSICION_ID]
+        cancelar_reserva(id)
+        return
+
+    else:
+        print(f"Cantidad de argumentos insuficientes para {sys.argv[POSICiON_COMANDO]}.")
+        return
+
+    """
     mostrar_reservas(argumentos)
+    """
     
 if __name__ == "__main__":
     main()
