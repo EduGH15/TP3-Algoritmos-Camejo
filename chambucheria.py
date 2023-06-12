@@ -44,6 +44,17 @@ DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
 UBICACION_ADENTRO = "D"
 
+def id_fuera_rango(id, nombre_archivo):
+    esta_fuera_rango = False
+    archivo = open(nombre_archivo)
+    lector = csv.reader(archivo, delimiter=";")
+    reservas = list(lector)
+    for i in range(len(reservas)):
+        if reservas[-1][0] < id:
+            esta_fuera_rango = True
+    archivo.close()
+    return esta_fuera_rango
+
 def existe_id(id, nombre_archivo):
     existe = False
     archivo = open(nombre_archivo)
@@ -114,10 +125,12 @@ def imprimir_error_eliminar(argumentos, nombre_archivo):
 def imprimir_error_listar(argumentos, nombre_archivo):
     if len(argumentos) != CANTIDAD_ARGUMENTOS_MINIMA_LISTAR and len(argumentos) != CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR:
         print("El número de argumentos no es válido. Ingrese: <archivo> listar id_inicial id_final o <archivo> listar")
-    elif len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR and (not existe_id(argumentos[POSICION_ID_INICIAL], nombre_archivo) or not existe_id(argumentos[POSICION_ID_FINAL], nombre_archivo)):
-        print("No se puede listar el archivo porque uno de los dos id no existe")
+    elif not argumentos[POSICION_ID_INICIAL].isnumeric() or not argumentos[POSICION_ID_FINAL].isnumeric():
+        print("Ambos id deben ser números.")
     elif len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR and int(argumentos[POSICION_ID_INICIAL]) > int(argumentos[POSICION_ID_FINAL]):
         print("El primer id debe ser menor al segundo")
+    elif id_fuera_rango(argumentos[POSICION_ID_INICIAL], RESERVA):
+        print("No se pueden mostrar las reservas porque los id están fuera de rango.")
 
 def imprimir_error_modificar_campo(lista_datos):
     if lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and not es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
@@ -249,7 +262,6 @@ def listar_reserva_archivo(argumentos, nombre_archivo):
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
 
-    
     if len(argumentos) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR:
         for i in range(1, len(reservas)):
             for j in range(len(reservas[i])):
@@ -258,16 +270,10 @@ def listar_reserva_archivo(argumentos, nombre_archivo):
     elif len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR:
         id_inicial = argumentos[2]
         id_final = argumentos[3]
-        fila_inicial = POSICION_NO_ENCONTRADA
-        fila_final = POSICION_NO_ENCONTRADA
         for i in range(1, len(reservas)):
-            if id_inicial in reservas[i][0]:
-                fila_inicial = i
-            if id_final in reservas[i][0]:
-                fila_final = i
-        for i in range(fila_inicial, fila_final + 1):
             for j in range(len(reservas[i])):
-                print(f"{asignar_nuevo_formato(reservas[0][j])}: {reservas[i][j]}")
+                if reservas[i][0] >= id_inicial and reservas[i][0] <= id_final:
+                    print(f"{asignar_nuevo_formato(reservas[0][j])}: {reservas[i][j]}")
             print("\n")
 
     archivo.close()
@@ -303,7 +309,7 @@ def cancelar_reserva(argumentos):
         return 
 
 def mostrar_reservas(argumentos):
-    if (argumentos[POSICiON_COMANDO] == COMANDO_LISTAR and len(argumentos) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR or (len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR) and (existe_id(argumentos[POSICION_ID_INICIAL], RESERVA) and existe_id(argumentos[POSICION_ID_FINAL], RESERVA)) and (argumentos[POSICION_ID_INICIAL] < argumentos[POSICION_ID_FINAL])):
+    if (argumentos[POSICiON_COMANDO] == COMANDO_LISTAR and len(argumentos) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR or (len(argumentos) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR and (argumentos[POSICION_ID_INICIAL].isnumeric() and argumentos[POSICION_ID_FINAL].isnumeric()) and (argumentos[POSICION_ID_INICIAL] < argumentos[POSICION_ID_FINAL]) and not id_fuera_rango(argumentos[POSICION_ID_INICIAL], RESERVA))):
         listar_reserva_archivo(argumentos, RESERVA)
     elif argumentos[POSICiON_COMANDO] == COMANDO_LISTAR:
         imprimir_error_listar(argumentos, RESERVA)
