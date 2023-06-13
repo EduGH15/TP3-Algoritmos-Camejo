@@ -52,7 +52,7 @@ def id_fuera_rango(id, nombre_archivo):
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     for i in range(len(reservas)):
-        if reservas[-1][0] < id:
+        if reservas[len(reservas) - 1][0] < id:
             esta_fuera_rango = True
     archivo.close()
     return esta_fuera_rango
@@ -93,7 +93,7 @@ def es_ubicacion_valida(ubicacion):
     return ubicacion == UBICACION_AFUERA or ubicacion == UBICACION_ADENTRO
 
 def es_nombre_valido(nombre):
-    return nombre.isalpha()
+    return not nombre.isnumeric()
 
 def es_cantidad_valida(cantidad):
     return cantidad.isnumeric() and int(cantidad) > 0
@@ -170,6 +170,7 @@ def nuevo_id(nombre_archivo):
         archivo = open(nombre_archivo)
     except:
         print("Error al abrir el archivo.")
+
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     if len(reservas) > SIN_RESERVAS:
@@ -179,8 +180,8 @@ def nuevo_id(nombre_archivo):
     archivo.close()
     return str(int(id) + 1)
 
-def agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
-    nueva_linea = [" ", nombre, cantidad_personas, hora, ubicacion]
+def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
+    nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
     
     try:
         archivo = open(nombre_archivo, "a")
@@ -211,7 +212,6 @@ def eliminar_datos_archivo(id, nombre_archivo):
     for linea in lector:
         if linea[0] != id:
             escritor.writerow(linea)
-
 
     archivo.close()
     archivo_auxiliar.close()
@@ -265,9 +265,9 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
     
     for i in range(len(reservas)):
         for j in range(len(reservas[i])):
-            if reservas[i][0] >= id_inicial and reservas[i][0] <= id_final:
+            if int(reservas[i][0]) >= int(id_inicial) and int(reservas[i][0]) <= int(id_final):
                 print(f"{asignar_campo(j)}: {reservas[i][j]}")
-
+        print("\n")
     archivo.close()
 
 def listar_datos_archivo(nombre_archivo):
@@ -288,7 +288,7 @@ def listar_datos_archivo(nombre_archivo):
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     if es_nombre_valido(nombre) and es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
         id = nuevo_id(nombre_archivo)
-        agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
+        agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
         print("Se agregó con exito")
     else:
         imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion)
