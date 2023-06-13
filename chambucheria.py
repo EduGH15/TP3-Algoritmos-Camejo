@@ -43,10 +43,12 @@ CAMPO_UBICACION = "ubicacion"
 
 LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
+SIN_ID = " "
 DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
 UBICACION_ADENTRO = "D"
 
+"""
 def id_fuera_rango(id, nombre_archivo):
     esta_fuera_rango = False
     try:
@@ -63,6 +65,8 @@ def id_fuera_rango(id, nombre_archivo):
     archivo.close()
     return esta_fuera_rango
 
+"""
+"""
 def existe_id(id, nombre_archivo):
     existe = False
 
@@ -78,6 +82,17 @@ def existe_id(id, nombre_archivo):
             existe = True
     archivo.close()
     return existe
+"""
+
+def asignar_posicion(campo):
+    if campo == CAMPO_NOMBRE:
+        return POSICION_CAMPO_NOMBRE
+    elif campo == CAMPO_CANTIDAD_PERSONAS:
+        return POSICION_CAMPO_CANTIDAD_PERSONAS
+    elif campo == CAMPO_HORARIO:
+        return POSICION_CAMPO_HORARIO
+    elif campo == CAMPO_UBICACION:
+        return POSICION_CAMPO_UBICACION
 
 def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
@@ -141,9 +156,6 @@ def es_horario_valido(horario):
 def es_ubicacion_valida(ubicacion):
     return ubicacion == UBICACION_AFUERA or ubicacion == UBICACION_ADENTRO
 
-def es_nombre_valido(nombre):
-    return not nombre.isnumeric()
-
 def es_cantidad_valida(cantidad):
     return cantidad.isnumeric() and int(cantidad) > 0
 
@@ -151,32 +163,19 @@ def es_comando_valido(comando):
     return comando == COMANDO_AGREGAR or comando == COMANDO_MODIFICAR or comando == COMANDO_ELIMINAR or comando == COMANDO_LISTAR
 
 #------------------------------------------MOSTRAR POR PANTALLA-------------------------------------------
-def imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion):
-    if not es_nombre_valido(nombre):
-        print("El nombre ingresado no puede ser un número.")
-    elif not es_cantidad_valida(cantidad_personas):
+def imprimir_error_agregar(cantidad_personas, hora, ubicacion):
+    if not es_cantidad_valida(cantidad_personas):
         print("La cantidad de personas ingresadas es inválida. Ingrese un número mayor a cero.")
     elif not es_horario_valido(hora):
         print("El horario es inválido. Ingrese un horario entre las 00:00 y las 23:59.")
     elif not es_ubicacion_valida(ubicacion):
         print("La ubicación es inválida. Ingrese D o F.")
 
-def imprimir_error_modificar(id, nombre_archivo):
-    if not id.isnumeric():
-        print("El id debe ser un número.")
-    elif not existe_id(id, nombre_archivo):
-        print("No se puede acceder a esta reserva porque no existe.")
-
-def imprimir_error_eliminar(id, nombre_archivo):
-    imprimir_error_modificar(id, nombre_archivo)
-
-def imprimir_error_listar(id_inicial, id_final, nombre_archivo):
+def imprimir_error_listar(id_inicial, id_final):
     if not id_inicial.isnumeric() or not id_final.isnumeric():
         print("Ambos id deben ser números.")
     elif int(id_inicial) > int(id_final):
         print("El primer id debe ser menor al segundo")
-    elif id_fuera_rango(id_inicial, nombre_archivo):
-        print("No se pueden mostrar las reservas porque los id están fuera de rango.")
 
 def imprimir_error_modificar_campo(lista_datos):
     if len(lista_datos) != 2:
@@ -193,18 +192,20 @@ def imprimir_error_modificar_campo(lista_datos):
         print("El campo que desea cambiar es inválido, ingrese otro campo:")
 
 #----------------------------------------- MODIFICACIONES DE ARCHIVO ---------------------------------------
-def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
-    nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
-    
+def agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
+    nueva_linea = [SIN_ID, nombre, cantidad_personas, hora, ubicacion]
+
     try:
         archivo = open(nombre_archivo, "a")
     except:
         print("Error al abrir el archivo")
         return
-
+    
+    nueva_linea[POSICION_CAMPO_ID] = nuevo_id(nombre_archivo)
     escritor = csv.writer(archivo, delimiter=";")
     escritor.writerow(nueva_linea)
     archivo.close()
+    print("Se agregó con exito")
 
 def eliminar_datos_archivo(id, nombre_archivo):
     try:
@@ -220,22 +221,24 @@ def eliminar_datos_archivo(id, nombre_archivo):
         print("error al abrir el archivo auxiliar")
         return
     
+    es_eliminado = False
     lector = csv.reader(archivo, delimiter=";")
     escritor = csv.writer(archivo_auxiliar, delimiter=";")
     for linea in lector:
         if linea[0] != id:
             escritor.writerow(linea)
+        else:
+            es_eliminado = True
 
     archivo.close()
     archivo_auxiliar.close()
-    
     os.rename(AUXILIAR, nombre_archivo)
+    if es_eliminado:
+        print("La reserva fue cancelada exitosamente.")
+    else:
+        print("La reserva no se pudo eliminar porque el id no existe.")
 
 def modificar_datos_archivo(id, lista_datos, nombre_archivo):
-    campo = lista_datos[0]
-    valor_campo = lista_datos[1]
-    posicion_campo_columna = asignar_posicion(campo)
-    nueva_linea = []
     try:
         archivo = open(nombre_archivo)
     except:
@@ -248,6 +251,12 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
         archivo.close()
         print("error al abrir el archivo auxiliar")
         return
+    
+    campo = lista_datos[0]
+    valor_campo = lista_datos[1]
+    posicion_campo_columna = asignar_posicion(campo)
+    nueva_linea = []
+    es_modificado = False
 
     lector = csv.reader(archivo, delimiter=";")
     escritor = csv.writer(archivo_auxiliar, delimiter=";")
@@ -255,25 +264,28 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
 
     for i in range(len(reservas)):
         nueva_linea = reservas[i].copy()
-        for j in range(len(reservas[i])):
-            if reservas[i][0] == id:
-                nueva_linea[posicion_campo_columna] = valor_campo
-
+        if reservas[i][0] == id and not es_modificado:
+            nueva_linea[posicion_campo_columna] = valor_campo
+            es_modificado = True
         escritor.writerow(nueva_linea)
 
     archivo.close()
     archivo_auxiliar.close()
-    
     os.rename(AUXILIAR, nombre_archivo)
 
+    if es_modificado: 
+        print("Modificación exitosa.")
+    else:
+        print("La reserva no pudo ser modificada porque el id no existe.")
+
 def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
-    es_valido = False      
     try:
         archivo = open(nombre_archivo)
     except:
         print("Error al abrir el archivo")
         return
     
+    es_valido = False      
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     
@@ -304,40 +316,36 @@ def listar_datos_archivo(nombre_archivo):
 
 #--------------------------------------------PROGRAMAS-----------------------------------------------
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
-    if es_nombre_valido(nombre) and es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
-        id = nuevo_id(nombre_archivo)
-        agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
-        print("Se agregó con exito")
+    if es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
+        agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
     else:
-        imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion)
+        imprimir_error_agregar(cantidad_personas, hora, ubicacion)
 
 def cambiar_reserva(id, nombre_archivo):
     es_valido = False
-    if id.isnumeric() and existe_id(id, nombre_archivo):
-        while(not es_valido):
+    if id.isnumeric():
+        while not es_valido:
             datos = input("¿Qué desea cambiar?:")
             lista_datos = datos.split()
-            if len(lista_datos) == CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO and ((lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]))):
+            if len(lista_datos) == CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO and ((lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE) or (lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO])) or (lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]))):
                 modificar_datos_archivo(id, lista_datos, nombre_archivo)
-                print("Modificación exitosa.")
                 es_valido = True
             else:
                 imprimir_error_modificar_campo(lista_datos)
     else:
-        imprimir_error_modificar(id, RESERVA)
+        print("El id debe ser un número.")
 
 def cancelar_reserva(id, nombre_archivo):
-    if id.isnumeric() and existe_id(id, nombre_archivo):
+    if id.isnumeric():
         eliminar_datos_archivo(id, nombre_archivo)
-        print("Se eliminó con éxito.")
     else:
-        imprimir_error_eliminar(id, nombre_archivo)
+        print("El id debe ser un número")
 
 def mostrar_reservas(id_inicial, id_final, nombre_archivo):
-    if (id_inicial.isnumeric() and id_final.isnumeric()) and (id_inicial < id_final) and not id_fuera_rango(id_inicial, RESERVA):
+    if (id_inicial.isnumeric() and id_final.isnumeric()) and (id_inicial < id_final):
         listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo)
     else:
-        imprimir_error_listar(id_inicial, id_final, nombre_archivo)
+        imprimir_error_listar(id_inicial, id_final)
 
 def main():
     if len(sys.argv) == 1:
