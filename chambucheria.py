@@ -166,7 +166,10 @@ def asignar_campo(columna):
         return CAMPO_UBICACION.capitalize()
 
 def nuevo_id(nombre_archivo):
-    archivo = open(nombre_archivo)
+    try:
+        archivo = open(nombre_archivo)
+    except:
+        print("Error al abrir el archivo.")
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     if len(reservas) > SIN_RESERVAS:
@@ -175,9 +178,9 @@ def nuevo_id(nombre_archivo):
         id = "0"
     archivo.close()
     return str(int(id) + 1)
-        
-def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
-    nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
+
+def agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
+    nueva_linea = [" ", nombre, cantidad_personas, hora, ubicacion]
     
     try:
         archivo = open(nombre_archivo, "a")
@@ -206,9 +209,9 @@ def eliminar_datos_archivo(id, nombre_archivo):
     lector = csv.reader(archivo, delimiter=";")
     escritor = csv.writer(archivo_auxiliar, delimiter=";")
     for linea in lector:
-        if linea[0] == id:
-            continue
-        escritor.writerow(linea)
+        if linea[0] != id:
+            escritor.writerow(linea)
+
 
     archivo.close()
     archivo_auxiliar.close()
@@ -285,7 +288,7 @@ def listar_datos_archivo(nombre_archivo):
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     if es_nombre_valido(nombre) and es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
         id = nuevo_id(nombre_archivo)
-        agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
+        agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
         print("Se agregó con exito")
     else:
         imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion)
