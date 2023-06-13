@@ -3,6 +3,7 @@ import csv
 import os
 
 RESERVA = "reservas.csv"
+AUXILIAR = "datos_auxiliares.csv"
 
 CANTIDAD_ARGUMENTOS_AGREGAR = 6
 CANTIDAD_ARGUMENTOS_MODIFICAR = 3
@@ -48,7 +49,12 @@ UBICACION_ADENTRO = "D"
 
 def id_fuera_rango(id, nombre_archivo):
     esta_fuera_rango = False
-    archivo = open(nombre_archivo)
+    try:
+        archivo = open(nombre_archivo)
+    except:
+        print("Error al abrir el archivo.")
+        return
+    
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     for i in range(len(reservas)):
@@ -59,7 +65,12 @@ def id_fuera_rango(id, nombre_archivo):
 
 def existe_id(id, nombre_archivo):
     existe = False
-    archivo = open(nombre_archivo)
+
+    try:
+        archivo = open(nombre_archivo)
+    except:
+        print("Error al abrir el archivo.")
+
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
     for i in range(len(reservas)):
@@ -68,6 +79,44 @@ def existe_id(id, nombre_archivo):
     archivo.close()
     return existe
 
+def asignar_nuevo_formato(campo):
+    if campo == CAMPO_ID:
+        nuevo_formato = campo.upper()
+    elif campo == CAMPO_CANTIDAD_PERSONAS:
+        nuevo_formato = "Cantidad de personas"
+    else:
+        nuevo_formato = campo.capitalize()
+    return nuevo_formato
+
+def asignar_campo(columna):
+    if columna == POSICION_CAMPO_ID:
+        return CAMPO_ID.upper()
+    if columna == POSICION_CAMPO_NOMBRE:
+        return CAMPO_NOMBRE.upper()
+    elif columna == POSICION_CAMPO_CANTIDAD_PERSONAS:
+        return "Cantidad personas"
+    elif columna == POSICION_CAMPO_HORARIO:
+        return CAMPO_HORARIO.capitalize()
+    elif columna == POSICION_CAMPO_UBICACION:
+        return CAMPO_UBICACION.capitalize()
+
+def nuevo_id(nombre_archivo):
+    try:
+        archivo = open(nombre_archivo)
+    except:
+        print("Error al abrir el archivo.")
+        return
+
+    lector = csv.reader(archivo, delimiter=";")
+    reservas = list(lector)
+    if len(reservas) != SIN_RESERVAS:
+        id = reservas[len(reservas) - 1][0]
+    else:
+        id = "0"
+    archivo.close()
+    return str(int(id) + 1)
+
+#----------------------------------------------VALIDACIONES---------------------------------------------
 def es_horario_valido(horario):
     es_valido = True
     lista_horario = list(horario)
@@ -101,7 +150,7 @@ def es_cantidad_valida(cantidad):
 def es_comando_valido(comando):
     return comando == COMANDO_AGREGAR or comando == COMANDO_MODIFICAR or comando == COMANDO_ELIMINAR or comando == COMANDO_LISTAR
 
-
+#------------------------------------------MOSTRAR POR PANTALLA-------------------------------------------
 def imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion):
     if not es_nombre_valido(nombre):
         print("El nombre ingresado no puede ser un número.")
@@ -143,43 +192,7 @@ def imprimir_error_modificar_campo(lista_datos):
     else:
         print("El campo que desea cambiar es inválido, ingrese otro campo:")
 
-
-def asignar_nuevo_formato(campo):
-    if campo == CAMPO_ID:
-        nuevo_formato = campo.upper()
-    elif campo == CAMPO_CANTIDAD_PERSONAS:
-        nuevo_formato = "Cantidad de personas"
-    else:
-        nuevo_formato = campo.capitalize()
-    return nuevo_formato
-
-def asignar_campo(columna):
-    if columna == POSICION_CAMPO_ID:
-        return CAMPO_ID.upper()
-    if columna == POSICION_CAMPO_NOMBRE:
-        return CAMPO_NOMBRE.upper()
-    elif columna == POSICION_CAMPO_CANTIDAD_PERSONAS:
-        return "Cantidad personas"
-    elif columna == POSICION_CAMPO_HORARIO:
-        return CAMPO_HORARIO.capitalize()
-    elif columna == POSICION_CAMPO_UBICACION:
-        return CAMPO_UBICACION.capitalize()
-
-def nuevo_id(nombre_archivo):
-    try:
-        archivo = open(nombre_archivo)
-    except:
-        print("Error al abrir el archivo.")
-
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)
-    if len(reservas) > SIN_RESERVAS:
-        id = reservas[len(reservas) - 1][0]
-    else:
-        id = "0"
-    archivo.close()
-    return str(int(id) + 1)
-
+#----------------------------------------- MODIFICACIONES DE ARCHIVO ---------------------------------------
 def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
     
@@ -201,7 +214,7 @@ def eliminar_datos_archivo(id, nombre_archivo):
         return
     
     try:
-        archivo_auxiliar = open("datos_auxiliares.csv", "w")
+        archivo_auxiliar = open(AUXILIAR, "w")
     except:
         archivo.close()
         print("error al abrir el archivo auxiliar")
@@ -216,7 +229,7 @@ def eliminar_datos_archivo(id, nombre_archivo):
     archivo.close()
     archivo_auxiliar.close()
     
-    os.rename("datos_auxiliares.csv", nombre_archivo)
+    os.rename(AUXILIAR, nombre_archivo)
 
 def modificar_datos_archivo(id, lista_datos, nombre_archivo):
     campo = lista_datos[0]
@@ -230,7 +243,7 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
         return
     
     try:
-        archivo_auxiliar = open("datos_auxiliares.csv", "a")
+        archivo_auxiliar = open(AUXILIAR, "a")
     except:
         archivo.close()
         print("error al abrir el archivo auxiliar")
@@ -251,7 +264,7 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
     archivo.close()
     archivo_auxiliar.close()
     
-    os.rename("datos_auxiliares.csv", nombre_archivo)
+    os.rename(AUXILIAR, nombre_archivo)
 
 def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
     es_valido = False      
@@ -289,6 +302,7 @@ def listar_datos_archivo(nombre_archivo):
         print("\n")
     archivo.close()
 
+#--------------------------------------------PROGRAMAS-----------------------------------------------
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     if es_nombre_valido(nombre) and es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
         id = nuevo_id(nombre_archivo)
