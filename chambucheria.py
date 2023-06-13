@@ -11,6 +11,7 @@ CANTIDAD_ARGUMENTOS_ELIMINAR = 3
 CANTIDAD_ARGUMENTOS_MINIMA_LISTAR = 2
 CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR = 4
 CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO = 2
+CANTIDAD_ARGUMENTOS_INSUFICIENTES = 1
 
 POSICiON_COMANDO = 1
 POSICION_ID = 2
@@ -40,49 +41,15 @@ CAMPO_NOMBRE = "nombre"
 CAMPO_CANTIDAD_PERSONAS = "cant"
 CAMPO_HORARIO = "hora"
 CAMPO_UBICACION = "ubicacion"
+NUEVO_CANTIDAD_PERSONAS = "Cantidad de personas"
 
 LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
 SIN_ID = " "
+LINEA_VACIA = []
 DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
 UBICACION_ADENTRO = "D"
-
-"""
-def id_fuera_rango(id, nombre_archivo):
-    esta_fuera_rango = False
-    try:
-        archivo = open(nombre_archivo)
-    except:
-        print("Error al abrir el archivo.")
-        return
-    
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)
-    for i in range(len(reservas)):
-        if reservas[len(reservas) - 1][0] < id:
-            esta_fuera_rango = True
-    archivo.close()
-    return esta_fuera_rango
-
-"""
-"""
-def existe_id(id, nombre_archivo):
-    existe = False
-
-    try:
-        archivo = open(nombre_archivo)
-    except:
-        print("Error al abrir el archivo.")
-
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)
-    for i in range(len(reservas)):
-        if reservas[i][0] == id:
-            existe = True
-    archivo.close()
-    return existe
-"""
 
 def asignar_posicion(campo):
     if campo == CAMPO_NOMBRE:
@@ -98,7 +65,7 @@ def asignar_nuevo_formato(campo):
     if campo == CAMPO_ID:
         nuevo_formato = campo.upper()
     elif campo == CAMPO_CANTIDAD_PERSONAS:
-        nuevo_formato = "Cantidad de personas"
+        nuevo_formato = NUEVO_CANTIDAD_PERSONAS
     else:
         nuevo_formato = campo.capitalize()
     return nuevo_formato
@@ -107,9 +74,9 @@ def asignar_campo(columna):
     if columna == POSICION_CAMPO_ID:
         return CAMPO_ID.upper()
     if columna == POSICION_CAMPO_NOMBRE:
-        return CAMPO_NOMBRE.upper()
+        return CAMPO_NOMBRE.capitalize()
     elif columna == POSICION_CAMPO_CANTIDAD_PERSONAS:
-        return "Cantidad personas"
+        return NUEVO_CANTIDAD_PERSONAS
     elif columna == POSICION_CAMPO_HORARIO:
         return CAMPO_HORARIO.capitalize()
     elif columna == POSICION_CAMPO_UBICACION:
@@ -175,13 +142,11 @@ def imprimir_error_listar(id_inicial, id_final):
     if not id_inicial.isnumeric() or not id_final.isnumeric():
         print("Ambos id deben ser números.")
     elif int(id_inicial) > int(id_final):
-        print("El primer id debe ser menor al segundo")
+        print("El primer id debe ser menor al segundo.")
 
 def imprimir_error_modificar_campo(lista_datos):
     if len(lista_datos) != 2:
         print("La cantidad de argumentos es incorrecta. Ingrese: campo nuevo_valor")
-    elif lista_datos[POSICION_CAMPO] == CAMPO_NOMBRE and not es_nombre_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
-        print("El nombre no debe contener números.")
     elif lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and not es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
         print("La cantidad de personas debe ser mayor a cero.")
     elif lista_datos[POSICION_CAMPO] == CAMPO_HORARIO and not es_horario_valido(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
@@ -189,18 +154,17 @@ def imprimir_error_modificar_campo(lista_datos):
     elif lista_datos[POSICION_CAMPO] == CAMPO_UBICACION and not es_ubicacion_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
         print("La ubicación debe ser válida (D o F).")
     else:
-        print("El campo que desea cambiar es inválido, ingrese otro campo:")
+        print("El campo que desea cambiar es inválido, ingrese otro campo.")
 
 #----------------------------------------- MODIFICACIONES DE ARCHIVO ---------------------------------------
 def agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
-    nueva_linea = [SIN_ID, nombre, cantidad_personas, hora, ubicacion]
-
     try:
         archivo = open(nombre_archivo, "a")
     except:
-        print("Error al abrir el archivo")
+        print("Error al abrir el archivo.")
         return
     
+    nueva_linea = [SIN_ID, nombre, cantidad_personas, hora, ubicacion]
     nueva_linea[POSICION_CAMPO_ID] = nuevo_id(nombre_archivo)
     escritor = csv.writer(archivo, delimiter=";")
     escritor.writerow(nueva_linea)
@@ -211,14 +175,14 @@ def eliminar_datos_archivo(id, nombre_archivo):
     try:
         archivo = open(nombre_archivo)
     except:
-        print("Error al abrir el archivo")
+        print("Error al abrir el archivo.")
         return
     
     try:
         archivo_auxiliar = open(AUXILIAR, "w")
     except:
         archivo.close()
-        print("error al abrir el archivo auxiliar")
+        print("Error al abrir el archivo auxiliar.")
         return
     
     es_eliminado = False
@@ -234,7 +198,7 @@ def eliminar_datos_archivo(id, nombre_archivo):
     archivo_auxiliar.close()
     os.rename(AUXILIAR, nombre_archivo)
     if es_eliminado:
-        print("La reserva fue cancelada exitosamente.")
+        print("La reserva fue eliminada exitosamente.")
     else:
         print("La reserva no se pudo eliminar porque el id no existe.")
 
@@ -249,13 +213,13 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
         archivo_auxiliar = open(AUXILIAR, "a")
     except:
         archivo.close()
-        print("error al abrir el archivo auxiliar")
+        print("Error al abrir el archivo auxiliar")
         return
     
-    campo = lista_datos[0]
-    valor_campo = lista_datos[1]
+    campo = lista_datos[POSICION_CAMPO]
+    valor_campo = lista_datos[POSICION_NUEVO_VALOR_CAMPO]
     posicion_campo_columna = asignar_posicion(campo)
-    nueva_linea = []
+    nueva_linea = LINEA_VACIA
     es_modificado = False
 
     lector = csv.reader(archivo, delimiter=";")
@@ -282,7 +246,7 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
     try:
         archivo = open(nombre_archivo)
     except:
-        print("Error al abrir el archivo")
+        print("Error al abrir el archivo.")
         return
     
     es_valido = False      
@@ -297,13 +261,15 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
         if es_valido:
             print("\n")
             es_valido = False
+    if int(reservas[len(reservas) - 1][0]) < int(id_inicial):
+        print("No se encuentra ninguna reserva dentro de este rango.")
     archivo.close()
 
 def listar_datos_archivo(nombre_archivo):
     try:
         archivo = open(nombre_archivo)
     except:
-        print("Error al abrir el archivo")
+        print("Error al abrir el archivo.")
         return
     
     lector = csv.reader(archivo, delimiter=";")
@@ -348,7 +314,7 @@ def mostrar_reservas(id_inicial, id_final, nombre_archivo):
         imprimir_error_listar(id_inicial, id_final)
 
 def main():
-    if len(sys.argv) == 1:
+    if len(sys.argv) == CANTIDAD_ARGUMENTOS_INSUFICIENTES:
         print("Cantidad de argumentos insuficientes.")
         return
 
@@ -380,7 +346,7 @@ def main():
         mostrar_reservas(id_inicial, id_final, RESERVA)
         return
     else:
-        print(f"Cantidad de argumentos insuficientes para {sys.argv[POSICiON_COMANDO]}.")
+        print(f"Cantidad de argumentos insuficientes para el comando: {sys.argv[POSICiON_COMANDO]}.")
         return
     
 if __name__ == "__main__":
