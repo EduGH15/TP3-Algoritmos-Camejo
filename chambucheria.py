@@ -104,7 +104,7 @@ def es_comando_valido(comando):
 
 def imprimir_error_agregar(nombre, cantidad_personas, hora, ubicacion):
     if not es_nombre_valido(nombre):
-        print("el nombre ingresado no es válido. Ingrese un nombre sin números.")
+        print("El nombre ingresado no puede ser un número.")
     elif not es_cantidad_valida(cantidad_personas):
         print("La cantidad de personas ingresadas es inválida. Ingrese un número mayor a cero.")
     elif not es_horario_valido(hora):
