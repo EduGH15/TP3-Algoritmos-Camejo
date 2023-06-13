@@ -253,7 +253,8 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
     
     os.rename("datos_auxiliares.csv", nombre_archivo)
 
-def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):      
+def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
+    es_valido = False      
     try:
         archivo = open(nombre_archivo)
     except:
@@ -267,7 +268,10 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
         for j in range(len(reservas[i])):
             if int(reservas[i][0]) >= int(id_inicial) and int(reservas[i][0]) <= int(id_final):
                 print(f"{asignar_campo(j)}: {reservas[i][j]}")
-        print("\n")
+                es_valido = True
+        if es_valido:
+            print("\n")
+            es_valido = False
     archivo.close()
 
 def listar_datos_archivo(nombre_archivo):
