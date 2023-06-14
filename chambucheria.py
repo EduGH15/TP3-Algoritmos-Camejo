@@ -47,6 +47,7 @@ NUEVO_CANTIDAD_PERSONAS = "Cantidad de personas"
 LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
 SIN_FORMATO = " "
+SIN_ID = "0"
 ID_INICIAL = "1"
 LINEA_VACIA = []
 DIVISION_HORARIA = ":"
@@ -67,7 +68,7 @@ def asignar_posicion(campo):
         nueva_posicion = POSICION_CAMPO_UBICACION
     return nueva_posicion
 
-#Pre: El parámetro campo debe de ser válido ("nombre" o "cant" u "hora" o "ubicación").
+#Pre: El parámetro campo debe ser un string válido ("nombre" o "cant" u "hora" o "ubicación").
 #Post:Dado un campo ("nombre" o "cant" u "hora" o "ubicación") le asigna un nuevo formato. Si el campo es un id, lo convierte en mayúscula. Si el campo es "cant", el nuevo formato
 #será "Cantidad de personas". Para el resto de los campos, su primera letra se transforma en mayúscula.
 def asignar_nuevo_formato(campo):
@@ -95,7 +96,7 @@ def asignar_campo(columna):
         return CAMPO_UBICACION.capitalize()
 
 #Pre: El archivo que se pase por parámetro, debe de existir.
-#Post: Dado un archivo, devuelve un nuevo id que es igual al último id + 1. En caso de que el archivo esté vacio, el nuevo id será 1.
+#Post: Dado un archivo, devuelve un nuevo id que es igual al último id + 1. En caso de que el archivo esté vacio, el nuevo id será 1. En caso de que el archivo no exista, devuelve 1
 def nuevo_id(nombre_archivo):
     try:
         archivo = open(nombre_archivo)
@@ -107,13 +108,12 @@ def nuevo_id(nombre_archivo):
     if len(reservas) != SIN_RESERVAS:
         id = reservas[len(reservas) - 1][0]
     else:
-        id = "0"
+        id = SIN_ID
     archivo.close()
     return str(int(id) + 1)
 
-#----------------------------------------------VALIDACIONES---------------------------------------------
 #Pre: El parámetro horario debe ser un string.
-#Post Dado un horario, devuelve false si no se encuentra entre las 00:00 y las 23:59 o si contiene letras.
+#Post Dado un horario, devuelve true si se encuentra entre las 00:00 y las 23:59 o si no contiene letras.
 def es_horario_valido(horario):
     es_valido = True
     lista_horario = list(horario)
@@ -136,7 +136,7 @@ def es_horario_valido(horario):
     return es_valido   
 
 #Pre: Ubicacion debe ser un string.
-#Post: Devuelve True si la ubicacion es "F" p "D"
+#Post: Devuelve True si la ubicacion es "F" o "D"
 def es_ubicacion_valida(ubicacion):
     return ubicacion == UBICACION_AFUERA or ubicacion == UBICACION_ADENTRO
 
@@ -150,8 +150,6 @@ def es_cantidad_valida(cantidad):
 def es_comando_valido(comando):
     return comando == COMANDO_AGREGAR or comando == COMANDO_MODIFICAR or comando == COMANDO_ELIMINAR or comando == COMANDO_LISTAR
 
-#------------------------------------------MOSTRAR POR PANTALLA-------------------------------------------
-
 #Pre:Todos los parámetros deben de ser strings
 #Post: Imprime un mensaje de error si la cantidad de personas es mayor o igual a cero, o si el horario no está entre las 00:00 y las 23:59, o si la ubicacion no es "D" ni "F"
 def imprimir_error_agregar(cantidad_personas, hora, ubicacion):
@@ -163,7 +161,7 @@ def imprimir_error_agregar(cantidad_personas, hora, ubicacion):
         print("La ubicación es inválida. Ingrese D o F.")
 
 #Pre: Todos los parámetros deben ser strings.
-#Post: Devuelve un mensaje de error si alguno de los dos no son números o si el primer id es mayor al segundo.
+#Post: Devuelve un mensaje de error si alguno de los dos id no son números o si el primer id es mayor al segundo.
 def imprimir_error_listar(id_inicial, id_final):
     if not id_inicial.isnumeric() or not id_final.isnumeric():
         print("Ambos id deben ser números.")
@@ -185,8 +183,7 @@ def imprimir_error_modificar_campo(lista_datos):
     else:
         print("El campo que desea cambiar es inválido, ingrese otro campo.")
 
-#----------------------------------------- MODIFICACIONES DE ARCHIVO ---------------------------------------
-#Pre: los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings válidos, y el archivo debe existir.
+#Pre: los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings, y el archivo debe existir.
 #Post: Agrega los nuevos datos al final del archivo con un nuevo ID.
 def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     try:
@@ -234,7 +231,7 @@ def eliminar_datos_archivo(id, nombre_archivo):
     else:
         print("La reserva no se pudo eliminar porque el id no existe.")
 
-#Pre: El parámetro id debe ser un string válido, la lista de datos debe ser un array válido y el archivo debe existir.
+#Pre: El parámetro id debe ser un string, la lista de datos debe ser un array válido y el archivo debe existir.
 #Post: Dado un id, un campo y un nuevo valor relacionado a ese campo, modifica el valor de dicho campo relacionado a ese id. Si el id no existe, imprime un
 #mensaje de error.
 def modificar_datos_archivo(id, lista_datos, nombre_archivo):
@@ -277,7 +274,7 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
     else:
         print("La reserva no pudo ser modificada porque el id no existe.")
 
-#Pre: Los parametros id_inicial e id_final deben ser strings válidos. El archivo debe de existir.
+#Pre: Los parametros id_inicial e id_final deben ser strings válidos (id_inicial > id_final). El archivo debe de existir.
 #Post: Dado un id_inicial y un id_final, muestra todas las reservas entre ese rango de id. En caso de que el id_inicial sea mayor al ultimo id del archivo, se
 #imprime un mensaje de error.
 def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
