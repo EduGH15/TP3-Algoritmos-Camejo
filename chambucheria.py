@@ -46,8 +46,8 @@ NUEVO_CANTIDAD_PERSONAS = "Cantidad de personas"
 
 LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
-SIN_ID = " "
 SIN_FORMATO = " "
+ID_INICIAL = "1"
 LINEA_VACIA = []
 DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
@@ -100,8 +100,7 @@ def nuevo_id(nombre_archivo):
     try:
         archivo = open(nombre_archivo)
     except:
-        print("Error al abrir el archivo.")
-        return
+        return ID_INICIAL
 
     lector = csv.reader(archivo, delimiter=";")
     reservas = list(lector)
@@ -175,7 +174,7 @@ def imprimir_error_listar(id_inicial, id_final):
 #Post: Imprime un mensaje de error si la longitud del array es distinta de 2 o si el campo no es "nombre" o "cant" u "hora" o "ubicacion". También imprime error si el valor del campo
 #no es válido.
 def imprimir_error_modificar_campo(lista_datos):
-    if len(lista_datos) != 2:
+    if len(lista_datos) != CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO:
         print("La cantidad de argumentos es incorrecta. Ingrese: campo nuevo_valor")
     elif lista_datos[POSICION_CAMPO] == CAMPO_CANTIDAD_PERSONAS and not es_cantidad_valida(lista_datos[POSICION_NUEVO_VALOR_CAMPO]):
         print("La cantidad de personas debe ser mayor a cero.")
@@ -189,24 +188,18 @@ def imprimir_error_modificar_campo(lista_datos):
 #----------------------------------------- MODIFICACIONES DE ARCHIVO ---------------------------------------
 #Pre: los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings válidos, y el archivo debe existir.
 #Post: Agrega los nuevos datos al final del archivo con un nuevo ID.
-def agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
+def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     try:
         archivo = open(nombre_archivo, "a")
     except:
         print("Error al abrir el archivo.")
         return
     
-    nueva_linea = [SIN_ID, nombre, cantidad_personas, hora, ubicacion]
-    nueva_linea[POSICION_CAMPO_ID] = nuevo_id(nombre_archivo)
+    nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
     escritor = csv.writer(archivo, delimiter=";")
     escritor.writerow(nueva_linea)
     archivo.close()
     print("Se agregó con exito")
-
-    """
-    escritor = csv.writer(archivo, delimiter=";")
-    
-    """
 
 #Pre: El parámetro id debe ser un string y el archivo debe existir.
 #Post: Dado un id, elimina todos los datos relacionados a ese id. Si el id no existe, imprime un mensaje de error.
@@ -332,7 +325,8 @@ def listar_datos_archivo(nombre_archivo):
 #Post: Realiza una reserva con los datos que se le pasen por parámetro. En caso de que sean inválidos, imprime un mensaje de error.
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
     if es_cantidad_valida(cantidad_personas) and es_horario_valido(hora) and es_ubicacion_valida(ubicacion):
-        agregar_datos_archivo(nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
+        id = nuevo_id(nombre_archivo)
+        agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre_archivo)
     else:
         imprimir_error_agregar(cantidad_personas, hora, ubicacion)
 
@@ -352,12 +346,16 @@ def cambiar_reserva(id, nombre_archivo):
     else:
         print("El id debe ser un número.")
 
+#Pre: El parámetro id debe ser un string y el archivo debe existir.
+#Post: Realiza una eliminación de la reserva en caso de que el id sea válido. Si el id es inválido, imprime un mensaje de error.
 def cancelar_reserva(id, nombre_archivo):
     if id.isnumeric():
         eliminar_datos_archivo(id, nombre_archivo)
     else:
         print("El id debe ser un número")
 
+#Pre: Los parametros id_inicial e id_final deben ser strings y el archivo debe existir.
+#Post: Dado un id_inicial y un id_final, muestra todas las reservas en ese intervalo. En caso de que alguno de los id sean inválidos, imprime un mensaje de error.
 def mostrar_reservas(id_inicial, id_final, nombre_archivo):
     if (id_inicial.isnumeric() and id_final.isnumeric()) and (id_inicial < id_final):
         listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo)
@@ -375,10 +373,10 @@ def main():
 
     if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_AGREGAR:
         nombre = sys.argv[POSICION_NOMBRE]
-        cant_personas = sys.argv[POSICION_CANTIDAD_PERSONAS]  
-        horario = sys.argv[POSICION_HORARIO]
+        cantidad_personas = sys.argv[POSICION_CANTIDAD_PERSONAS]  
+        hora = sys.argv[POSICION_HORARIO]
         ubicacion = sys.argv[POSICION_UBICACION]
-        realizar_reserva(nombre, cant_personas, horario, ubicacion, RESERVA)
+        realizar_reserva(nombre, cantidad_personas, hora, ubicacion, RESERVA)
         return
     elif sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MODIFICAR:
         id = sys.argv[POSICION_ID]
