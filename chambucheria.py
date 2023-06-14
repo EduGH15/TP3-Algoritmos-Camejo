@@ -296,8 +296,10 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
         if es_valido:
             print("\n")
             es_valido = False
-    if int(reservas[len(reservas) - 1][0]) < int(id_inicial):
+    if len(reservas) > 0 and int(reservas[len(reservas) - 1][0]) < int(id_inicial):
         print("No se encuentra ninguna reserva dentro de este rango.")
+    elif len(reservas) == 0:
+        print("No hay reservas.")
     archivo.close()
 
 #Pre: El parámetro archivo debe existir.
@@ -315,9 +317,10 @@ def listar_datos_archivo(nombre_archivo):
         for j in range(len(reservas[i])):
                 print(f"{asignar_campo(j)}: {reservas[i][j]}")
         print("\n")
+    if len(reservas) == 0:
+        print("No hay reservas.")
     archivo.close()
 
-#--------------------------------------------PROGRAMAS-----------------------------------------------
 #Pre: Los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings y el archivo debe existir.
 #Post: Realiza una reserva con los datos que se le pasen por parámetro. En caso de que sean inválidos, imprime un mensaje de error.
 def realizar_reserva(nombre, cantidad_personas, hora, ubicacion, nombre_archivo):
