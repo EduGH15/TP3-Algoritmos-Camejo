@@ -48,6 +48,7 @@ LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
 SIN_FORMATO = " "
 SIN_ID = "0"
+SiN_PERSONAS = 0
 ID_INICIAL = "1"
 LINEA_VACIA = []
 DIVISION_HORARIA = ":"
@@ -143,7 +144,7 @@ def es_ubicacion_valida(ubicacion):
 #Pre:cantidad debe ser un string.
 #Post: Devuelve True si cantidad no contiene otras letras y si es un número mayor a cero.
 def es_cantidad_valida(cantidad):
-    return cantidad.isnumeric() and int(cantidad) > 0
+    return cantidad.isnumeric() and int(cantidad) > SiN_PERSONAS
 
 #Pre: El parámetro comando debe ser un string.
 #Post: Devuelve True si comando es igual a "Agregar", "eliminar", "modificar" o "listar"
@@ -164,7 +165,7 @@ def imprimir_error_agregar(cantidad_personas, hora, ubicacion):
 #Post: Devuelve un mensaje de error si alguno de los dos id no son números o si el primer id es mayor al segundo.
 def imprimir_error_listar(id_inicial, id_final):
     if not id_inicial.isnumeric() or not id_final.isnumeric():
-        print("Ambos id deben ser números.")
+        print("Ambos id deben ser números mayores a cero.")
     elif int(id_inicial) > int(id_final):
         print("El primer id debe ser menor al segundo.")
 
@@ -344,7 +345,7 @@ def cambiar_reserva(id, nombre_archivo):
             else:
                 imprimir_error_modificar_campo(lista_datos)
     else:
-        print("El id debe ser un número.")
+        print("El id debe ser un número mayor a cero.")
 
 #Pre: El parámetro id debe ser un string y el archivo debe existir.
 #Post: Realiza una eliminación de la reserva en caso de que el id sea válido. Si el id es inválido, imprime un mensaje de error.
@@ -352,7 +353,7 @@ def cancelar_reserva(id, nombre_archivo):
     if id.isnumeric():
         eliminar_datos_archivo(id, nombre_archivo)
     else:
-        print("El id debe ser un número")
+        print("El id debe ser un número mayor a cero.")
 
 #Pre: Los parametros id_inicial e id_final deben ser strings y el archivo debe existir.
 #Post: Dado un id_inicial y un id_final, muestra todas las reservas en ese intervalo. En caso de que alguno de los id sean inválidos, imprime un mensaje de error.
