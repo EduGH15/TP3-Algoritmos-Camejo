@@ -13,7 +13,7 @@ CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR = 4
 CANTIDAD_ARGUMENTOS_MODIFICAR_CAMPO = 2
 CANTIDAD_ARGUMENTOS_INSUFICIENTES = 1
 
-POSICiON_COMANDO = 1
+POSICION_COMANDO = 1
 POSICION_ID = 2
 POSICION_NOMBRE = 2
 POSICION_CANTIDAD_PERSONAS = 3
@@ -54,6 +54,9 @@ LINEA_VACIA = []
 DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
 UBICACION_ADENTRO = "D"
+DELIMITADOR = ";"
+SIGUIENTE_ID = 1
+SIGUIENTE_POSICION = 1
 
 #Pre:El parámetro campo debe ser un string.
 #Post: Dado un campo ("nombre" o "cant" u "hora" o "ubicación") le asigna la posición 1 o 2 o 3 o 4 respectivamente. En caso de que el campo no sea el esperado, devuelve -1.
@@ -104,14 +107,13 @@ def nuevo_id(nombre_archivo):
     except:
         return ID_INICIAL
 
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)
-    if len(reservas) != SIN_RESERVAS:
-        id = reservas[len(reservas) - 1][0]
-    else:
-        id = SIN_ID
-    archivo.close()
-    return str(int(id) + 1)
+    lector = csv.reader(archivo, delimiter=DELIMITADOR)
+    
+    id = SIN_ID
+    for fila in lector:
+        id = fila[POSICION_CAMPO_ID]
+        
+    return str(int(id) + SIGUIENTE_ID)
 
 #Pre: El parámetro horario debe ser un string.
 #Post Dado un horario, devuelve true si se encuentra entre las 00:00 y las 23:59 o si no contiene letras.
@@ -128,7 +130,7 @@ def es_horario_valido(horario):
             es_valido = False
         elif i == 0 and int(horario[i]) > 2:
             es_valido = False
-        elif i == 0 and int(horario[i]) == 2 and int(horario[i + 1]) > 3:
+        elif i == 0 and int(horario[i]) == 2 and int(horario[i + SIGUIENTE_POSICION]) > 3:
             es_valido = False
         elif i == 3 and int(horario[i]) > 5:
             es_valido = False
@@ -194,7 +196,7 @@ def agregar_datos_archivo(id, nombre, cantidad_personas, hora, ubicacion, nombre
         return
     
     nueva_linea = [id, nombre, cantidad_personas, hora, ubicacion]
-    escritor = csv.writer(archivo, delimiter=";")
+    escritor = csv.writer(archivo, delimiter=DELIMITADOR)
     escritor.writerow(nueva_linea)
     archivo.close()
     print("Se agregó con exito")
@@ -216,10 +218,10 @@ def eliminar_datos_archivo(id, nombre_archivo):
         return
     
     es_eliminado = False
-    lector = csv.reader(archivo, delimiter=";")
-    escritor = csv.writer(archivo_auxiliar, delimiter=";")
+    lector = csv.reader(archivo, delimiter=DELIMITADOR)
+    escritor = csv.writer(archivo_auxiliar, delimiter=DELIMITADOR)
     for linea in lector:
-        if linea[0] != id:
+        if linea[POSICION_CAMPO_ID] != id:
             escritor.writerow(linea)
         else:
             es_eliminado = True
@@ -252,16 +254,14 @@ def modificar_datos_archivo(id, lista_datos, nombre_archivo):
     campo = lista_datos[POSICION_CAMPO]
     valor_campo = lista_datos[POSICION_NUEVO_VALOR_CAMPO]
     posicion_campo_columna = asignar_posicion(campo)
-    nueva_linea = LINEA_VACIA
     es_modificado = False
 
-    lector = csv.reader(archivo, delimiter=";")
-    escritor = csv.writer(archivo_auxiliar, delimiter=";")
-    reservas = list(lector)
+    lector = csv.reader(archivo, delimiter=DELIMITADOR)
+    escritor = csv.writer(archivo_auxiliar, delimiter=DELIMITADOR)
 
-    for i in range(len(reservas)):
-        nueva_linea = reservas[i].copy()
-        if reservas[i][0] == id and not es_modificado:
+    for linea in lector:
+        nueva_linea = linea.copy()
+        if linea[POSICION_CAMPO_ID] == id and not es_modificado:
             nueva_linea[posicion_campo_columna] = valor_campo
             es_modificado = True
         escritor.writerow(nueva_linea)
@@ -286,21 +286,38 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
         return
     
     es_valido = False      
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)
-    
+    lector = csv.reader(archivo, delimiter=DELIMITADOR)
+    es_listado = False
+
+    for linea in lector:
+        for j in range(len(linea)):
+            if int(linea[POSICION_CAMPO_ID]) >= int(id_inicial) and int(linea[0]) <= int(id_final):
+                print(f"{asignar_campo(j)}: {linea[j]}")
+                es_valido = True
+                es_listado = True                
+        if es_valido:
+            print("\n")
+            es_valido = False
+
+    if not es_listado:
+        print("No hay reservas.")
+
+
+
+    """
     for i in range(len(reservas)):
         for j in range(len(reservas[i])):
             if int(reservas[i][0]) >= int(id_inicial) and int(reservas[i][0]) <= int(id_final):
                 print(f"{asignar_campo(j)}: {reservas[i][j]}")
                 es_valido = True
         if es_valido:
-            print("\n")
             es_valido = False
     if len(reservas) > 0 and int(reservas[len(reservas) - 1][0]) < int(id_inicial):
         print("No se encuentra ninguna reserva dentro de este rango.")
     elif len(reservas) == 0:
         print("No hay reservas.")
+    """
+
     archivo.close()
 
 #Pre: El parámetro archivo debe existir.
@@ -312,14 +329,16 @@ def listar_datos_archivo(nombre_archivo):
         print("Error al abrir el archivo.")
         return
     
-    lector = csv.reader(archivo, delimiter=";")
-    reservas = list(lector)    
-    for i in range(len(reservas)):
-        for j in range(len(reservas[i])):
-                print(f"{asignar_campo(j)}: {reservas[i][j]}")
+    lector = csv.reader(archivo, delimiter=DELIMITADOR)
+    listado= False
+    for linea in lector:
+        for j in range(len(linea)):
+            print(f"{asignar_campo(j)}: {linea[j]}")
+            listado = True
         print("\n")
-    if len(reservas) == 0:
-        print("No hay reservas.")
+    
+    if not listado:
+        print("No hay reservas")
     archivo.close()
 
 #Pre: Los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings y el archivo debe existir.
@@ -368,35 +387,35 @@ def main():
         print("Cantidad de argumentos insuficientes.")
         return
 
-    if not es_comando_valido(sys.argv[POSICiON_COMANDO]):
-        print(f"{sys.argv[POSICiON_COMANDO]} no es un comando válido.")
+    if not es_comando_valido(sys.argv[POSICION_COMANDO]):
+        print(f"{sys.argv[POSICION_COMANDO]} no es un comando válido.")
         return
 
-    if sys.argv[POSICiON_COMANDO] == COMANDO_AGREGAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_AGREGAR:
+    if sys.argv[POSICION_COMANDO] == COMANDO_AGREGAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_AGREGAR:
         nombre = sys.argv[POSICION_NOMBRE]
         cantidad_personas = sys.argv[POSICION_CANTIDAD_PERSONAS]  
         hora = sys.argv[POSICION_HORARIO]
         ubicacion = sys.argv[POSICION_UBICACION]
         realizar_reserva(nombre, cantidad_personas, hora, ubicacion, RESERVA)
         return
-    elif sys.argv[POSICiON_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MODIFICAR:
+    elif sys.argv[POSICION_COMANDO] == COMANDO_MODIFICAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MODIFICAR:
         id = sys.argv[POSICION_ID]
         cambiar_reserva(id, RESERVA)
         return
-    elif sys.argv[POSICiON_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_ELIMINAR:
+    elif sys.argv[POSICION_COMANDO] == COMANDO_ELIMINAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_ELIMINAR:
         id = sys.argv[POSICION_ID]
         cancelar_reserva(id, RESERVA)
         return
-    elif sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR:
+    elif sys.argv[POSICION_COMANDO] == COMANDO_LISTAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MINIMA_LISTAR:
         listar_datos_archivo(RESERVA)
         return
-    elif sys.argv[POSICiON_COMANDO] == COMANDO_LISTAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR:
+    elif sys.argv[POSICION_COMANDO] == COMANDO_LISTAR and len(sys.argv) == CANTIDAD_ARGUMENTOS_MAXIMA_LISTAR:
         id_inicial = sys.argv[POSICION_ID_INICIAL]
         id_final = sys.argv[POSICION_ID_FINAL]
         mostrar_reservas(id_inicial, id_final, RESERVA)
         return
     else:
-        print(f"Cantidad de argumentos insuficientes para el comando: {sys.argv[POSICiON_COMANDO]}.")
+        print(f"Cantidad de argumentos insuficientes para el comando: {sys.argv[POSICION_COMANDO]}.")
         return
     
 if __name__ == "__main__":
