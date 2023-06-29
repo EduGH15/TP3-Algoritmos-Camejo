@@ -22,6 +22,9 @@ POSICION_UBICACION = 5
 POSICION_ID_INICIAL = 2
 POSICION_ID_FINAL = 3
 POSICION_INVALIDA = -1
+PRIMERA_POSICION_HORA = 0
+POSICION_DIVSION_HORA = 2
+PRIMERA_POSICION_MINUTOS = 3
 
 POSICION_CAMPO = 0
 POSICION_NUEVO_VALOR_CAMPO = 1
@@ -57,6 +60,9 @@ UBICACION_ADENTRO = "D"
 DELIMITADOR = ";"
 SIGUIENTE_ID = 1
 SIGUIENTE_POSICION = 1
+PRIMER_LIMITE_HORA = 2
+SEGUNDO_LIMITE_HORA = 3
+TERCER_LIMITE_HORA = 5
 
 #Pre:El parámetro campo debe ser un string.
 #Post: Dado un campo ("nombre" o "cant" u "hora" o "ubicación") le asigna la posición 1 o 2 o 3 o 4 respectivamente. En caso de que el campo no sea el esperado, devuelve -1.
@@ -124,15 +130,15 @@ def es_horario_valido(horario):
     while(i < len(lista_horario) and es_valido):
         if len(lista_horario) != LONGITUD_CAMPO_HORARIO:
             es_valido = False
-        elif i == 2 and lista_horario[i] != DIVISION_HORARIA:
+        elif i == POSICION_DIVSION_HORA and lista_horario[i] != DIVISION_HORARIA:
             es_valido = False
-        elif i != 2 and not lista_horario[i].isnumeric():
+        elif i != POSICION_DIVSION_HORA and not lista_horario[i].isnumeric():
             es_valido = False
-        elif i == 0 and int(horario[i]) > 2:
+        elif i == PRIMERA_POSICION_HORA and int(horario[i]) > PRIMER_LIMITE_HORA:
             es_valido = False
-        elif i == 0 and int(horario[i]) == 2 and int(horario[i + SIGUIENTE_POSICION]) > 3:
+        elif i == PRIMERA_POSICION_HORA and int(horario[i]) == PRIMER_LIMITE_HORA and int(horario[i + SIGUIENTE_POSICION]) > SEGUNDO_LIMITE_HORA:
             es_valido = False
-        elif i == 3 and int(horario[i]) > 5:
+        elif i == PRIMERA_POSICION_MINUTOS and int(horario[i]) > TERCER_LIMITE_HORA:
             es_valido = False
         i+= 1
 
@@ -362,7 +368,7 @@ def cancelar_reserva(id, nombre_archivo):
 #Pre: Los parametros id_inicial e id_final deben ser strings y el archivo debe existir.
 #Post: Dado un id_inicial y un id_final, muestra todas las reservas en ese intervalo. En caso de que alguno de los id sean inválidos, imprime un mensaje de error.
 def mostrar_reservas(id_inicial, id_final, nombre_archivo):
-    if (id_inicial.isnumeric() and id_final.isnumeric()) and (id_inicial < id_final):
+    if (id_inicial.isnumeric() and id_final.isnumeric()) and (int(id_inicial) < int(id_final)):
         listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo)
     else:
         imprimir_error_listar(id_inicial, id_final)
