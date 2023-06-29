@@ -229,6 +229,7 @@ def eliminar_datos_archivo(id, nombre_archivo):
     archivo.close()
     archivo_auxiliar.close()
     os.rename(AUXILIAR, nombre_archivo)
+
     if es_eliminado:
         print("La reserva fue eliminada exitosamente.")
     else:
@@ -294,29 +295,13 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
             if int(linea[POSICION_CAMPO_ID]) >= int(id_inicial) and int(linea[0]) <= int(id_final):
                 print(f"{asignar_campo(j)}: {linea[j]}")
                 es_valido = True
-                es_listado = True                
+                es_listado = True             
         if es_valido:
             print("\n")
             es_valido = False
 
     if not es_listado:
-        print("No hay reservas.")
-
-
-
-    """
-    for i in range(len(reservas)):
-        for j in range(len(reservas[i])):
-            if int(reservas[i][0]) >= int(id_inicial) and int(reservas[i][0]) <= int(id_final):
-                print(f"{asignar_campo(j)}: {reservas[i][j]}")
-                es_valido = True
-        if es_valido:
-            es_valido = False
-    if len(reservas) > 0 and int(reservas[len(reservas) - 1][0]) < int(id_inicial):
-        print("No se encuentra ninguna reserva dentro de este rango.")
-    elif len(reservas) == 0:
-        print("No hay reservas.")
-    """
+        print("No hay reservas en este rango.")
 
     archivo.close()
 
