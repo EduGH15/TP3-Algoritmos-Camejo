@@ -51,9 +51,8 @@ LONGITUD_CAMPO_HORARIO = 5
 SIN_RESERVAS = 0
 SIN_FORMATO = " "
 SIN_ID = "0"
-SiN_PERSONAS = 0
+SIN_PERSONAS = 0
 ID_INICIAL = "1"
-LINEA_VACIA = []
 DIVISION_HORARIA = ":"
 UBICACION_AFUERA = "F"
 UBICACION_ADENTRO = "D"
@@ -126,7 +125,7 @@ def nuevo_id(nombre_archivo):
 def es_horario_valido(horario):
     es_valido = True
     lista_horario = list(horario)
-    i = 0
+    i = PRIMERA_POSICION_HORA
     while(i < len(lista_horario) and es_valido):
         if len(lista_horario) != LONGITUD_CAMPO_HORARIO:
             es_valido = False
@@ -152,7 +151,7 @@ def es_ubicacion_valida(ubicacion):
 #Pre:cantidad debe ser un string.
 #Post: Devuelve True si cantidad no contiene otras letras y si es un número mayor a cero.
 def es_cantidad_valida(cantidad):
-    return cantidad.isnumeric() and int(cantidad) > SiN_PERSONAS
+    return cantidad.isnumeric() and int(cantidad) > SIN_PERSONAS
 
 #Pre: El parámetro comando debe ser un string.
 #Post: Devuelve True si comando es igual a "Agregar", "eliminar", "modificar" o "listar"
@@ -298,7 +297,7 @@ def listar_rango_datos_archivo(id_inicial, id_final, nombre_archivo):
 
     for linea in lector:
         for j in range(len(linea)):
-            if int(linea[POSICION_CAMPO_ID]) >= int(id_inicial) and int(linea[0]) <= int(id_final):
+            if int(linea[POSICION_CAMPO_ID]) >= int(id_inicial) and int(linea[POSICION_CAMPO_ID]) <= int(id_final):
                 print(f"{asignar_campo(j)}: {linea[j]}")
                 es_valido = True
                 es_listado = True             
@@ -321,7 +320,8 @@ def listar_datos_archivo(nombre_archivo):
         return
     
     lector = csv.reader(archivo, delimiter=DELIMITADOR)
-    listado= False
+    listado = False
+
     for linea in lector:
         for j in range(len(linea)):
             print(f"{asignar_campo(j)}: {linea[j]}")
@@ -330,6 +330,7 @@ def listar_datos_archivo(nombre_archivo):
     
     if not listado:
         print("No hay reservas")
+
     archivo.close()
 
 #Pre: Los parámetros nombre, cantidad_personas, hora, ubicacion deben ser strings y el archivo debe existir.
